@@ -69,23 +69,47 @@ jobs:
       run: |
         BUNDLE_DIR="build/linux/${{ matrix.architecture }}/release/bundle"
         
-        cat <<EOF > "${BUNDLE_DIR}/Maki Dice.desktop"
+        cat <<'EOF' > "${BUNDLE_DIR}/Maki Dice.desktop"
         [Desktop Entry]
         Version=1.9.3
         Type=Application
         Name=Maki Dice
-        Comment=Dice for role-playing games
-        Exec=bash -c 'cd "\$(dirname "\$0")" && ./makidice'
-        Icon=\${ORIGIN}/data/flutter_assets/assets/icon.png
+        Comment=Maki Dice Roller Application
+        Exec=sh -c 'cd "$(dirname "$0")" && ./makidice'
+        Icon=assets/icon.png
         Terminal=false
-        Categories=Utility;
-        X-GNOME-Autostart-enabled=true
+        Categories=Utility;Game;
+        EOF
+
+        mkdir -p "${BUNDLE_DIR}/assets"
+        cp assets/icon.png "${BUNDLE_DIR}/assets/icon.png"
+
+        cat <<'EOF' > "${BUNDLE_DIR}/install-launcher.sh"
+        #!/usr/bin/env bash
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        DESKTOP_FILE="${SCRIPT_DIR}/Maki Dice.desktop"
+        
+        if [ ! -f "$DESKTOP_FILE" ]; then
+            echo "Error: Maki Dice.desktop not found!"
+            exit 1
+        fi
+        
+        sed -i "s|^Exec=.*|Exec=sh -c 'cd \"${SCRIPT_DIR}\" \&\& ./makidice'|g" "$DESKTOP_FILE"
+        sed -i "s|^Icon=.*|Icon=${SCRIPT_DIR}/assets/icon.png|g" "$DESKTOP_FILE"
+        
+        chmod +x "$DESKTOP_FILE"
+        chmod +x "${SCRIPT_DIR}/makidice"
+        
+        mkdir -p "$HOME/.local/share/applications"
+        cp "$DESKTOP_FILE" "$HOME/.local/share/applications/"
+        update-desktop-database "$HOME/.local/share/applications" 2>/dev/null
+        
         EOF
 
         chmod +x "${BUNDLE_DIR}/Maki Dice.desktop"
-        chmod +x "${BUNDLE_DIR}/makidice"
+        chmod +x "${BUNDLE_DIR}/install-launcher.sh"
+        chmod +x "${BUNDLE_DIR}/makidice"        
         tar -czf "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
-
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
