@@ -14,65 +14,63 @@ jobs:
         architecture: [x64, arm64]
 
     steps:
-    - name: Checkout repository
+    - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Set up QEMU
+    - name: Set Up QEMU
       if: matrix.architecture == 'arm64'
       uses: docker/setup-qemu-action@v3
 
-    - name: Install Linux dependencies
+    - name: Install Linux Dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
-        
+
         if [ "${{ matrix.architecture }}" = "arm64" ]; then
           # 1. Register the arm64 architecture layout
           sudo dpkg --add-architecture arm64
-          
-          # 2. Extract current mirrors to dynamically map the right repositories
-          MAIN_MIRROR=$(awk '/^deb .*ubuntu.com\/ubuntu/ {print $2; exit}' /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || echo "http://ubuntu.com")
-          SEC_MIRROR=$(awk '/^deb .*security.ubuntu.com\/ubuntu/ {print $2; exit}' /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || echo "http://ubuntu.com")
-          
-          # 3. Re-write the apt sources so x64 uses standard mirrors and arm64 uses ports
-          sudo tee /etc/apt/sources.list.d/multiarch-split.sources > /dev/null <<EOF
-          Types: deb
-          URIs: $MAIN_MIRROR $SEC_MIRROR
-          Suites: noble noble-updates noble-security noble-backports
-          Components: main universe restricted multiverse
-          Architectures: amd64
 
-          Types: deb
-          URIs: http://ubuntu.com
-          Suites: noble noble-updates noble-security noble-backports
-          Components: main universe restricted multiverse
-          Architectures: arm64
-          EOF
-          
+          # 2. Extract current mirrors dynamically
+          MAIN_MIRROR=$(awk '/^deb .*ubuntu.com\/ubuntu/ {print $2; exit}' /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || echo "http://ubuntu.com")
+          SEC_MIRROR=$(awk '/^deb .*://ubuntu.com\/ubuntu/ {print $2; exit}' /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || echo "http://://ubuntu.com/ubuntu/")
+
+          # 3. Safely write multiarch configuration without syntax-sensitive here-docs
+          echo "Types: deb" | sudo tee /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
+          echo "URIs: $MAIN_MIRROR $SEC_MIRROR" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
+          echo "Suites: noble noble-updates noble-security noble-backports" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
+          echo "Components: main universe restricted multiverse" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
+          echo "Architectures: amd64" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
+          echo "" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
+          echo "Types: deb" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
+          echo "URIs: http://ubuntu.com" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
+          echo "Suites: noble noble-updates noble-security noble-backports" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
+          echo "Components: main universe restricted multiverse" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
+          echo "Architectures: arm64" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
+
           # 4. Remove original files to prevent duplicate definitions and 404s
           sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/ubuntu.sources
-          
+
           # 5. Update and cleanly install cross-compilation toolchains
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libgtk-3-dev:arm64 liblzma-dev:arm64
         fi
 
 
-    - name: Set up Java
+    - name: Set Up Java
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Set up Flutter
+    - name: Set Up Flutter
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
 
-    - name: Install Flutter dependencies
+    - name: Install Flutter Dependencies
       run: flutter pub get
 
-    - name: Build Linux app
+    - name: Build Linux App
       run: |
         flutter config --enable-linux-desktop
         if [ "${{ matrix.architecture }}" = "arm64" ]; then
