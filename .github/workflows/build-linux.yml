@@ -11,113 +11,76 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
     strategy:
       matrix:
-        architecture: [x64, arm64]
+        include:
+          - architecture: x64
+            runner: ubuntu-latest
+            snap_arch: amd64
+          - architecture: arm64
+            runner: ubuntu-24.04-arm64
+            snap_arch: arm64
+
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
 
     steps:
-    - name: Checkout Repository
+    - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Configure QEMU
-      if: matrix.architecture == 'arm64'
-      uses: docker/setup-qemu-action@v3
 
     - name: Install Linux dependencies
       run: |
         sudo apt-get update
-        # 1. Install speed booster and native x64 desktop tools
-        sudo apt-get install -y eatmydata
-        sudo eatmydata apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+        sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
 
-        if [ "${{ matrix.architecture }}" = "arm64" ]; then
-          # 2. Install the cross-compilers natively
-          sudo eatmydata apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-
-          # 3. Create isolated directories for our sandbox apt instance
-          M_DIR="/tmp/arm64-sandbox"
-          # Fix: Clear out any previous directories and separate folder creation from file touch actions
-          sudo rm -rf "$M_DIR"
-          mkdir -p "$M_DIR/lists" "$M_DIR/cache" "$M_DIR/sources"
-          touch "$M_DIR/status"
-
-          # 4. Write isolated multiarch configurations using safe domain concatenation
-          BASE_DOMAIN="ubuntu.com"
-          PORTS_URL="http://ports.${BASE_DOMAIN}/ubuntu-ports/"
-
-          echo "deb [arch=arm64] $PORTS_URL noble main universe restricted" > "$M_DIR/sources/arm64.list"
-          echo "deb [arch=arm64] $PORTS_URL noble-updates main universe restricted" >> "$M_DIR/sources/arm64.list"
-          echo "deb [arch=arm64] $PORTS_URL noble-security main universe restricted" >> "$M_DIR/sources/arm64.list"
-
-          # 5. Build an isolated apt parameter command sequence
-          APT_SANDBOX="apt-get \
-            -o Dir::Etc::SourceList=$M_DIR/sources/arm64.list \
-            -o Dir::Etc::SourceParts=/dev/null \
-            -o Dir::State::Lists=$M_DIR/lists \
-            -o Dir::State::status=$M_DIR/status \
-            -o Dir::Cache=$M_DIR/cache \
-            -o APT::Architecture=arm64 \
-            -o APT::Architectures=arm64"
-
-          # 6. Fetch target metadata and download live packages automatically without 404 errors
-          sudo eatmydata $APT_SANDBOX update
-          
-          mkdir -p /tmp/arm64-packages && cd /tmp/arm64-packages
-          sudo eatmydata $APT_SANDBOX download \
-            libgtk-3-0t64:arm64 libglib2.0-0t64:arm64 libpango-1.0-0:arm64 \
-            libcairo2:arm64 libgdk-pixbuf-2.0-0:arm64 libatk1.0-0t64:arm64 \
-            liblzma5:arm64 libstdc++6:arm64 libc6:arm64
-
-          # 7. Unpack binaries inside the workspace sysroot layout
-          sudo mkdir -p /opt/sysroot-arm64
-          for pkg in *.deb; do
-            sudo dpkg-deb -x "$pkg" /opt/sysroot-arm64
-          done
-
-          # 8. Expose environment targets for the build systems
-          echo "PKG_CONFIG_DIR=" | sudo tee -a /etc/environment
-          echo "PKG_CONFIG_PATH=/opt/sysroot-arm64/usr/lib/aarch64-linux-gnu/pkgconfig:/opt/sysroot-arm64/usr/share/pkgconfig" | sudo tee -a /etc/environment
-          echo "PKG_CONFIG_SYSROOT_DIR=/opt/sysroot-arm64" | sudo tee -a /etc/environment
-        fi
-
-    - name: Configure Java
+    - name: Set up Java
       uses: actions/setup-java@v5
       with:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Configure Flutter
+    - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
 
-    - name: Install Flutter Dependencies
+    - name: Install Flutter dependencies
       run: flutter pub get
 
-    - name: Build App
+    - name: Build Linux app
       run: |
         flutter config --enable-linux-desktop
         
         if [ ! -d "linux" ]; then
           flutter create --platforms=linux .
         fi
+        
+        flutter build linux --release
 
-        if [ "${{ matrix.architecture }}" = "arm64" ]; then
-          export PKG_CONFIG_SYSROOT_DIR=/opt/sysroot-arm64
-          export PKG_CONFIG_PATH=/opt/sysroot-arm64/usr/lib/aarch64-linux-gnu/pkgconfig
-          flutter build linux --release --target-platform linux-arm64 --build-name=1.0.0
-        else
-          flutter build linux --release
-        fi
+    # # Build the Snap Package natively using the correct architecture label
+    # - name: Build Snap Package
+    #   uses: canonical/action-snapcraft@v3
+    #   with:
+    #     architecture: ${{ matrix.snap_arch }}
 
-    - name: Package App
+    # # Upload Snap package to the store (Only triggers on pushes to main)
+    # - name: Upload Snap to Store
+    #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    #   uses: canonical/action-publish@v1
+    #   env:
+    #     SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+    #   with:
+    #     snap: ${{ steps.build.outputs.snap || './*.snap' }}
+    #     channel: edge
+
+    - name: Package Linux Build
       run: |
         tar -czf "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
 
-    - name: Upload Artifact
+    - name: Upload Build Artifacts to GitHub
       uses: actions/upload-artifact@v4
       with:
         name: makidice-linux-${{ matrix.architecture }}
-        path: makidice-linux-${{ matrix.architecture }}.tar.gz
+        path: |
+          makidice-linux-${{ matrix.architecture }}.tar.gz
+#          ./*.snap
