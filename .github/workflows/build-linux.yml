@@ -24,11 +24,14 @@ jobs:
     - name: Install Linux dependencies
       run: |
         sudo apt-get update
+        # 1. Install standard native x64 build tools and development libraries
         sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
 
         if [ "${{ matrix.architecture }}" = "arm64" ]; then
+          # 2. Register the architecture 
           sudo dpkg --add-architecture arm64
 
+          # 3. Setup split sources using the domain wrapper to bypass formatting issues
           BASE_DOMAIN="ubuntu.com"
           MAIN_MIRROR="http://archive.${BASE_DOMAIN}/ubuntu/"
           SEC_MIRROR="http://security.${BASE_DOMAIN}/ubuntu/"
@@ -47,18 +50,37 @@ jobs:
           echo "Architectures: arm64" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
 
           sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/ubuntu.sources
-
           sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libgtk-3-dev:arm64 liblzma-dev:arm64
+
+          # 4. Install the cross-compilers on the host (these do not collide)
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+          # 5. Download the ARM64 binaries and unpack them safely inside an isolated sysroot folder
+          mkdir -p /tmp/arm64-packages
+          cd /tmp/arm64-packages
+          apt-get download \
+            libgtk-3-0:arm64 libglib2.0-0:arm64 libpango-1.0-0:arm64 \
+            libcairo2:arm64 libgdk-pixbuf-2.0-0:arm64 libatk1.0-0:arm64 \
+            liblzma5:arm64 libstdc++6:arm64 libc6:arm64
+
+          sudo mkdir -p /opt/sysroot-arm64
+          for pkg in *.deb; do
+            sudo dpkg-deb -x "$pkg" /opt/sysroot-arm64
+          done
+
+          # 6. Inform pkg-config and your compilers where the isolated ARM64 assets live
+          echo "PKG_CONFIG_DIR=" | sudo tee -a /etc/environment
+          echo "PKG_CONFIG_PATH=/opt/sysroot-arm64/usr/lib/aarch64-linux-gnu/pkgconfig:/opt/sysroot-arm64/usr/share/pkgconfig" | sudo tee -a /etc/environment
+          echo "PKG_CONFIG_SYSROOT_DIR=/opt/sysroot-arm64" | sudo tee -a /etc/environment
         fi
 
-    - name: Set Up Java
+    - name: Configure Java
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Set Up Flutter
+    - name: Configure Flutter
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
@@ -66,23 +88,25 @@ jobs:
     - name: Install Flutter Dependencies
       run: flutter pub get
 
-    - name: Build Linux App
+    - name: Build Linux app
       run: |
         flutter config --enable-linux-desktop
         if [ "${{ matrix.architecture }}" = "arm64" ]; then
-          # Pass cross-compilation flags to Flutter/CMake for ARM64 target
-          flutter build linux --release --target-platform linux-arm64
+          # Explicitly target arm64 architecture and feed toolchain paths to CMake
+          export PKG_CONFIG_SYSROOT_DIR=/opt/sysroot-arm64
+          export PKG_CONFIG_PATH=/opt/sysroot-arm64/usr/lib/aarch64-linux-gnu/pkgconfig
+          flutter build linux --release --target-platform linux-arm64 --build-name=1.0.0
         else
           flutter build linux --release
         fi
 
-    - name: Package Linux Build
+    - name: Package App
       run: |
         cd build/linux/${{ matrix.architecture }}/release/
         tar -czf ../../../makidice-linux-${{ matrix.architecture }}.tar.gz bundle
 
-    - name: Upload Build Artifact
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: linux-release-bundle-${{ matrix.architecture }}
+        name: makidice-linux-${{ matrix.architecture }}
         path: makidice-linux-${{ matrix.architecture }}.tar.gz
