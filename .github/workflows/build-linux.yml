@@ -21,20 +21,19 @@ jobs:
       if: matrix.architecture == 'arm64'
       uses: docker/setup-qemu-action@v3
 
-    - name: Install Linux Dependencies
+    - name: Install Linux dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
 
         if [ "${{ matrix.architecture }}" = "arm64" ]; then
-          # 1. Register the arm64 architecture layout
           sudo dpkg --add-architecture arm64
 
-          # 2. Extract current mirrors dynamically
-          MAIN_MIRROR=$(awk '/^deb .*ubuntu.com\/ubuntu/ {print $2; exit}' /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || echo "http://ubuntu.com")
-          SEC_MIRROR=$(awk '/^deb .*://ubuntu.com\/ubuntu/ {print $2; exit}' /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || echo "http://://ubuntu.com/ubuntu/")
+          BASE_DOMAIN="ubuntu.com"
+          MAIN_MIRROR="http://archive.${BASE_DOMAIN}/ubuntu/"
+          SEC_MIRROR="http://security.${BASE_DOMAIN}/ubuntu/"
+          PORTS_MIRROR="http://ports.${BASE_DOMAIN}/ubuntu-ports/"
 
-          # 3. Safely write multiarch configuration without syntax-sensitive here-docs
           echo "Types: deb" | sudo tee /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
           echo "URIs: $MAIN_MIRROR $SEC_MIRROR" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
           echo "Suites: noble noble-updates noble-security noble-backports" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
@@ -42,19 +41,16 @@ jobs:
           echo "Architectures: amd64" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
           echo "" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
           echo "Types: deb" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
-          echo "URIs: http://ubuntu.com" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
+          echo "URIs: $PORTS_MIRROR" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
           echo "Suites: noble noble-updates noble-security noble-backports" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
           echo "Components: main universe restricted multiverse" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
           echo "Architectures: arm64" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
 
-          # 4. Remove original files to prevent duplicate definitions and 404s
           sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/ubuntu.sources
 
-          # 5. Update and cleanly install cross-compilation toolchains
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libgtk-3-dev:arm64 liblzma-dev:arm64
         fi
-
 
     - name: Set Up Java
       uses: actions/setup-java@v4
