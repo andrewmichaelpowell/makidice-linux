@@ -20,7 +20,7 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Set Up QEMU
+    - name: Configure QEMU
       if: matrix.architecture == 'arm64'
       uses: docker/setup-qemu-action@v3
 
@@ -57,7 +57,7 @@ jobs:
           mkdir -p /tmp/arm64-packages
           cd /tmp/arm64-packages
           apt-get download \
-            libgtk-3-0:arm64 libglib2.0-0:arm64 libpango-1.0-0:arm64 \
+            libgtk-3-0t64:arm64 libglib2.0-0t64:arm64 libpango-1.0-0:arm64 \
             libcairo2:arm64 libgdk-pixbuf-2.0-0:arm64 libatk1.0-0:arm64 \
             liblzma5:arm64 libstdc++6:arm64 libc6:arm64
 
@@ -65,6 +65,7 @@ jobs:
           for pkg in *.deb; do
             sudo dpkg-deb -x "$pkg" /opt/sysroot-arm64
           done
+
 
           echo "PKG_CONFIG_DIR=" | sudo tee -a /etc/environment
           echo "PKG_CONFIG_PATH=/opt/sysroot-arm64/usr/lib/aarch64-linux-gnu/pkgconfig:/opt/sysroot-arm64/usr/share/pkgconfig" | sudo tee -a /etc/environment
@@ -89,7 +90,6 @@ jobs:
       run: |
         flutter config --enable-linux-desktop
         
-        # Proactively generate missing native /linux boilerplate directories if they don't exist
         if [ ! -d "linux" ]; then
           flutter create --platforms=linux .
         fi
