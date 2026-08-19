@@ -18,7 +18,7 @@ jobs:
             runner: ubuntu-latest
             snap_arch: amd64
           - architecture: arm64
-            runner: ubuntu-24.04-arm64
+            runner: ubuntu-24.04-arm64-4core
             snap_arch: arm64
 
     runs-on: ${{ matrix.runner }}
@@ -47,7 +47,7 @@ jobs:
     - name: Install Flutter dependencies
       run: flutter pub get
 
-    - name: Build Linux app
+    - name: Build App
       run: |
         flutter config --enable-linux-desktop
         
@@ -57,14 +57,16 @@ jobs:
         
         flutter build linux --release
 
-    # # Build the Snap Package natively using the correct architecture label
-    # - name: Build Snap Package
-    #   uses: canonical/action-snapcraft@v3
-    #   with:
-    #     architecture: ${{ matrix.snap_arch }}
+    - name: Package App
+      run: |
+        tar -czf "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
 
-    # # Upload Snap package to the store (Only triggers on pushes to main)
-    # - name: Upload Snap to Store
+    - name: Build Snap Package
+      uses: canonical/action-snapcraft@v3
+      with:
+        architecture: ${{ matrix.snap_arch }}
+
+    # - name: Upload Snap Package
     #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     #   uses: canonical/action-publish@v1
     #   env:
@@ -73,14 +75,10 @@ jobs:
     #     snap: ${{ steps.build.outputs.snap || './*.snap' }}
     #     channel: edge
 
-    - name: Package Linux Build
-      run: |
-        tar -czf "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
-
-    - name: Upload Build Artifacts to GitHub
+    - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: makidice-linux-${{ matrix.architecture }}
         path: |
           makidice-linux-${{ matrix.architecture }}.tar.gz
-#          ./*.snap
+          ./*.snap
