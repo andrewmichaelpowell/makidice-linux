@@ -24,6 +24,7 @@ void main() async {
     );
 
     windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.setTitle("Maki Dice"); 
       await windowManager.show();
       await windowManager.focus();
     });

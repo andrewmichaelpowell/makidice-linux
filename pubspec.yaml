@@ -1,5 +1,5 @@
-name: Maki Dice
-description: A dice roller for tabletop role-playing games.
+name: makidice
+description: Dice for role-playing games
 publish_to: 'none'
 version: 1.9.3+1
 
@@ -15,4 +15,6 @@ dev_dependencies:
   flutter_lints: ^4.0.0
 
 flutter:
+  assets:
+    - assets/icon.png
   uses-material-design: true

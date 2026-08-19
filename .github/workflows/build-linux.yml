@@ -67,6 +67,22 @@ jobs:
 
     - name: Package App
       run: |
+        BUNDLE_DIR="build/linux/${{ matrix.architecture }}/release/bundle"
+        
+        cat <<EOF > "${BUNDLE_DIR}/Maki Dice.desktop"
+        [Desktop Entry]
+        Version=1.0
+        Type=Application
+        Name=Maki Dice
+        Comment=Dice for role-playing games
+        Exec=bash -c 'cd "\$(dirname "\$0")" && ./makidice'
+        Icon=data/flutter_assets/assets/icon.png
+        Terminal=false
+        Categories=Utility;
+        EOF
+
+        chmod +x "${BUNDLE_DIR}/Maki Dice.desktop"
+        chmod +x "${BUNDLE_DIR}/makidice"
         tar -czf "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
 
 
