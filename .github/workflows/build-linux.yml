@@ -12,6 +12,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       matrix:
         architecture: [x64, arm64]
@@ -27,36 +28,20 @@ jobs:
     - name: Install Linux Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+        sudo apt-get install -y eatmydata
+        
+        sudo eatmydata apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
 
         if [ "${{ matrix.architecture }}" = "arm64" ]; then
           sudo dpkg --add-architecture arm64
-
-          BASE_DOMAIN="ubuntu.com"
-          MAIN_MIRROR="http://archive.${BASE_DOMAIN}/ubuntu/"
-          SEC_MIRROR="http://security.${BASE_DOMAIN}/ubuntu/"
-          PORTS_MIRROR="http://ports.${BASE_DOMAIN}/ubuntu-ports/"
-
-          echo "Types: deb" | sudo tee /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
-          echo "URIs: $MAIN_MIRROR $SEC_MIRROR" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
-          echo "Suites: noble noble-updates noble-security noble-backports" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
-          echo "Components: main universe restricted multiverse" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
-          echo "Architectures: amd64" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
-          echo "" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
-          echo "Types: deb" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
-          echo "URIs: $PORTS_MIRROR" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
-          echo "Suites: noble noble-updates noble-security noble-backports" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
-          echo "Components: main universe restricted multiverse" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
-          echo "Architectures: arm64" | sudo tee -a /etc/apt/sources.list.d/multiarch-split.sources > /dev/null
-
-          sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/ubuntu.sources
-          sudo apt-get update
-
-          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          
+          sudo eatmydata apt-get update
+          sudo eatmydata apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
           mkdir -p /tmp/arm64-packages
           cd /tmp/arm64-packages
-          apt-get download \
+          
+          sudo eatmydata apt-get download \
             libgtk-3-0t64:arm64 libglib2.0-0t64:arm64 libpango-1.0-0:arm64 \
             libcairo2:arm64 libgdk-pixbuf-2.0-0:arm64 libatk1.0-0:arm64 \
             liblzma5:arm64 libstdc++6:arm64 libc6:arm64
@@ -65,11 +50,6 @@ jobs:
           for pkg in *.deb; do
             sudo dpkg-deb -x "$pkg" /opt/sysroot-arm64
           done
-
-
-          echo "PKG_CONFIG_DIR=" | sudo tee -a /etc/environment
-          echo "PKG_CONFIG_PATH=/opt/sysroot-arm64/usr/lib/aarch64-linux-gnu/pkgconfig:/opt/sysroot-arm64/usr/share/pkgconfig" | sudo tee -a /etc/environment
-          echo "PKG_CONFIG_SYSROOT_DIR=/opt/sysroot-arm64" | sudo tee -a /etc/environment
         fi
 
     - name: Configure Java
@@ -104,8 +84,7 @@ jobs:
 
     - name: Package App
       run: |
-        cd build/linux/${{ matrix.architecture }}/release/
-        tar -czf ../../../makidice-linux-${{ matrix.architecture }}.tar.gz bundle
+        tar -czf "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
