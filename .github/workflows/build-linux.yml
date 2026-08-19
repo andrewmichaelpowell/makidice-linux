@@ -18,33 +18,33 @@ jobs:
             runner: ubuntu-latest
             snap_arch: amd64
           - architecture: arm64
-            runner: ubuntu-24.04-arm64-4core
+            runner: ubuntu-24.04-arm
             snap_arch: arm64
 
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 15
 
     steps:
-    - name: Checkout repository
+    - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Install Linux dependencies
+    - name: Install Linux Dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
 
-    - name: Set up Java
+    - name: Configure Java
       uses: actions/setup-java@v5
       with:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Set up Flutter
+    - name: Configure Flutter
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
 
-    - name: Install Flutter dependencies
+    - name: Install Flutter Dependencies
       run: flutter pub get
 
     - name: Build App
