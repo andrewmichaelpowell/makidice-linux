@@ -71,14 +71,15 @@ jobs:
         
         cat <<EOF > "${BUNDLE_DIR}/Maki Dice.desktop"
         [Desktop Entry]
-        Version=1.0
+        Version=1.9.3
         Type=Application
         Name=Maki Dice
         Comment=Dice for role-playing games
         Exec=bash -c 'cd "\$(dirname "\$0")" && ./makidice'
-        Icon=data/flutter_assets/assets/icon.png
+        Icon=\${ORIGIN}/data/flutter_assets/assets/icon.png
         Terminal=false
         Categories=Utility;
+        X-GNOME-Autostart-enabled=true
         EOF
 
         chmod +x "${BUNDLE_DIR}/Maki Dice.desktop"
