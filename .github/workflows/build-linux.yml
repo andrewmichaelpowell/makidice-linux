@@ -1,3 +1,6 @@
+# Maki Dice (Linux)
+# github.com/andrewmichaelpowell
+
 name: Build Maki Dice
 
 on:
@@ -21,17 +24,14 @@ jobs:
       if: matrix.architecture == 'arm64'
       uses: docker/setup-qemu-action@v3
 
-    - name: Install Linux dependencies
+    - name: Install Linux Dependencies
       run: |
         sudo apt-get update
-        # 1. Install standard native x64 build tools and development libraries
         sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
 
         if [ "${{ matrix.architecture }}" = "arm64" ]; then
-          # 2. Register the architecture 
           sudo dpkg --add-architecture arm64
 
-          # 3. Setup split sources using the domain wrapper to bypass formatting issues
           BASE_DOMAIN="ubuntu.com"
           MAIN_MIRROR="http://archive.${BASE_DOMAIN}/ubuntu/"
           SEC_MIRROR="http://security.${BASE_DOMAIN}/ubuntu/"
@@ -52,10 +52,8 @@ jobs:
           sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/ubuntu.sources
           sudo apt-get update
 
-          # 4. Install the cross-compilers on the host (these do not collide)
           sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
-          # 5. Download the ARM64 binaries and unpack them safely inside an isolated sysroot folder
           mkdir -p /tmp/arm64-packages
           cd /tmp/arm64-packages
           apt-get download \
@@ -68,7 +66,6 @@ jobs:
             sudo dpkg-deb -x "$pkg" /opt/sysroot-arm64
           done
 
-          # 6. Inform pkg-config and your compilers where the isolated ARM64 assets live
           echo "PKG_CONFIG_DIR=" | sudo tee -a /etc/environment
           echo "PKG_CONFIG_PATH=/opt/sysroot-arm64/usr/lib/aarch64-linux-gnu/pkgconfig:/opt/sysroot-arm64/usr/share/pkgconfig" | sudo tee -a /etc/environment
           echo "PKG_CONFIG_SYSROOT_DIR=/opt/sysroot-arm64" | sudo tee -a /etc/environment
@@ -88,11 +85,16 @@ jobs:
     - name: Install Flutter Dependencies
       run: flutter pub get
 
-    - name: Build Linux app
+    - name: Build App
       run: |
         flutter config --enable-linux-desktop
+        
+        # Proactively generate missing native /linux boilerplate directories if they don't exist
+        if [ ! -d "linux" ]; then
+          flutter create --platforms=linux .
+        fi
+
         if [ "${{ matrix.architecture }}" = "arm64" ]; then
-          # Explicitly target arm64 architecture and feed toolchain paths to CMake
           export PKG_CONFIG_SYSROOT_DIR=/opt/sysroot-arm64
           export PKG_CONFIG_PATH=/opt/sysroot-arm64/usr/lib/aarch64-linux-gnu/pkgconfig
           flutter build linux --release --target-platform linux-arm64 --build-name=1.0.0
