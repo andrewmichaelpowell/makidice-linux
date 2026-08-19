@@ -61,19 +61,6 @@ jobs:
       run: |
         tar -czf "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
 
-    - name: Build Snap Package
-      uses: canonical/action-snapcraft@v3
-      with:
-        architecture: ${{ matrix.snap_arch }}
-
-    # - name: Upload Snap Package
-    #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    #   uses: canonical/action-publish@v1
-    #   env:
-    #     SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-    #   with:
-    #     snap: ${{ steps.build.outputs.snap || './*.snap' }}
-    #     channel: edge
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
@@ -81,4 +68,3 @@ jobs:
         name: makidice-linux-${{ matrix.architecture }}
         path: |
           makidice-linux-${{ matrix.architecture }}.tar.gz
-          ./*.snap
