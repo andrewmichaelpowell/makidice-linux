@@ -1,0 +1,67 @@
+name: Build Maki Dice
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        architecture: [x64, arm64]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up QEMU
+      if: matrix.architecture == 'arm64'
+      uses: docker/setup-qemu-action@v3
+
+    - name: Install Linux dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+        if [ "${{ matrix.architecture }}" = "arm64" ]; then
+          sudo dpkg --add-architecture arm64
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libgtk-3-dev:arm64 liblzma-dev:arm64
+        fi
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+
+    - name: Install Flutter dependencies
+      run: flutter pub get
+
+    - name: Build Linux app
+      run: |
+        flutter config --enable-linux-desktop
+        if [ "${{ matrix.architecture }}" = "arm64" ]; then
+          # Pass cross-compilation flags to Flutter/CMake for ARM64 target
+          flutter build linux --release --target-platform linux-arm64
+        else
+          flutter build linux --release
+        fi
+
+    - name: Package Linux Build
+      run: |
+        cd build/linux/${{ matrix.architecture }}/release/
+        tar -czf ../../../makidice-linux-${{ matrix.architecture }}.tar.gz bundle
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-release-bundle-${{ matrix.architecture }}
+        path: makidice-linux-${{ matrix.architecture }}.tar.gz
