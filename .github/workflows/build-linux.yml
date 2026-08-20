@@ -90,7 +90,7 @@ jobs:
         mkdir -p "${BUNDLE_DIR}/assets"
         cp assets/icon.png "${BUNDLE_DIR}/assets/icon.png"
 
-        cat <<EOF > "${BUNDLE_DIR}/install-launcher.sh"
+        cat <<EOF > "${BUNDLE_DIR}/install.sh"
         #!/usr/bin/env bash
         SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE}")" && pwd)"
         DESKTOP_FILE="\${SCRIPT_DIR}/${APP_ID}.desktop"
@@ -114,7 +114,7 @@ jobs:
         EOF
 
         chmod +x "${BUNDLE_DIR}/${APP_ID}.desktop"
-        chmod +x "${BUNDLE_DIR}/install-launcher.sh"
+        chmod +x "${BUNDLE_DIR}/install.sh"
         chmod +x "${BUNDLE_DIR}/makidice"
         tar -czf "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
 
