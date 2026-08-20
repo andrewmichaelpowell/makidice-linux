@@ -37,4 +37,12 @@ parts:
       else
         ARCH_DIR="x64"
       fi
-      cp -r build/linux/$ARCH_DIR/release/bundle/* $CRAFT_PART_INSTALL/
+      
+      TARGET_BUNDLE=$(find build/linux/$ARCH_DIR/release/ -type d -name "bundle" | head -n 1)
+      
+      if [ -n "$TARGET_BUNDLE" ]; then
+        cp -r "$TARGET_BUNDLE"/* $CRAFT_PART_INSTALL/
+      else
+        echo "Error: Compiled Flutter release bundle not found!"
+        exit 1
+      fi
