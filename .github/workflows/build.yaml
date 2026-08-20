@@ -121,7 +121,7 @@ jobs:
         EOF
 
         cat <<EOF > /tmp/deb-control-template
-        Package: maki-dice
+        Package: makidice
         Version: 1.9.3
         Architecture: ${{ matrix.fpm_arch }}
         Maintainer: Andrew Powell
@@ -133,7 +133,7 @@ jobs:
         EOF
 
         fpm -s dir -t deb \
-          -n maki-dice \
+          -n makidice \
           -v 1.9.3 \
           -a "${{ matrix.fpm_arch }}" \
           --license "GPL-3.0" \
@@ -143,7 +143,7 @@ jobs:
           -C "${STAGE_DIR}" .
 
         fpm -s dir -t rpm \
-          -n maki-dice \
+          -n makidice \
           -v 1.9.3 \
           -a "${{ matrix.fpm_arch }}" \
           --maintainer "Andrew Powell" \
