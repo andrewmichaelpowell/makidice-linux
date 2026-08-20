@@ -31,7 +31,7 @@ jobs:
     - name: Install Linux Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+        sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev rpm
         sudo gem install --no-document fpm
 
     - name: Configure Java
@@ -78,6 +78,7 @@ jobs:
         mkdir -p "${STAGE_DIR}/usr/lib/makidice"
         mkdir -p "${STAGE_DIR}/usr/bin"
         mkdir -p "${STAGE_DIR}/usr/share/applications"
+        mkdir -p "${STAGE_DIR}/usr/share/metainfo"
         mkdir -p "${STAGE_DIR}/usr/share/icons/hicolor/256x256/apps"
 
         cp -r ${FLUTTER_BUNDLE}/* "${STAGE_DIR}/usr/lib/makidice/"
@@ -99,6 +100,26 @@ jobs:
         StartupWMClass=xyz.andrewmichaelpowell.makidice
         EOF
 
+        cat <<EOF > "${STAGE_DIR}/usr/share/metainfo/${APP_ID}.metainfo.xml"
+        <?xml version="1.0" encoding="UTF-8"?>
+        <component type="desktop-id">
+          <id>${APP_ID}</id>
+          <metadata_license>FSFAP</metadata_license>
+          <project_license>GPL-3.0</project_license>
+          <name>Maki Dice</name>
+          <summary>Dice for role-playing games</summary>
+          <developer_name>Andrew Powell</developer_name>
+          <description>
+            <p>Maki Dice is a fast and easy dice roller for tabletop role-playing games. Roll any of the standard polyhedral dice with a single tap, enter custom rolls using the number pad, or calculate successes for games that use a dice and difficulty system.</p>
+          </description>
+          <launchable type="desktop-id">${APP_ID}.desktop</launchable>
+          <url type="homepage">https://github.com/andrewmichaelpowell</url>
+          <provides>
+            <binary>makidice</binary>
+          </provides>
+        </component>
+        EOF
+
         cat <<EOF > /tmp/deb-control-template
         Package: maki-dice
         Version: 1.9.3
@@ -107,8 +128,6 @@ jobs:
         Vendor: Andrew Powell
         License: GPL-3.0
         Homepage: https://github.com/andrewmichaelpowell
-        Icon: /usr/share/icons/hicolor/256x256/apps/makidice.png
-        X-AppCenter-Title: Maki Dice
         Description: Maki Dice
          Maki dice is a fast and easy dice roller for tabletop role-playing games. Roll any of the standard polyhedral dice with a single tap, enter custom rolls using the number pad, or calculate successes for games that use a dice and difficulty system.
         EOF
