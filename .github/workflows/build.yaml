@@ -16,10 +16,10 @@ jobs:
         include:
           - architecture: x64
             runner: ubuntu-latest
-            snap_arch: amd64
+            fpm_arch: amd64
           - architecture: arm64
             runner: ubuntu-24.04-arm
-            snap_arch: arm64
+            fpm_arch: arm64
 
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
@@ -32,6 +32,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+        sudo gem install --no-document fpm
 
     - name: Configure Java
       uses: actions/setup-java@v5
@@ -64,58 +65,63 @@ jobs:
         fi
 
         sed -i 's|set(APPLICATION_ID "com.example.makidice")|set(APPLICATION_ID "xyz.andrewmichaelpowell.makidice")|g' linux/CMakeLists.txt
-        
         sed -i 's|g_autofree gchar *application_id = g_strconcat("com.example.", binary_name, NULL);|g_autofree gchar *application_id = g_strdup("xyz.andrewmichaelpowell.makidice");|g' linux/runner/my_application.cc
 
         flutter build linux --release
 
-    - name: Package App
+    - name: Generate Packages
       run: |
-        BUNDLE_DIR="build/linux/${{ matrix.architecture }}/release/bundle"
         APP_ID="xyz.andrewmichaelpowell.makidice"
+        FLUTTER_BUNDLE="build/linux/${{ matrix.architecture }}/release/bundle"
+        STAGE_DIR="/tmp/package-staging"
         
-        cat <<EOF > "${BUNDLE_DIR}/${APP_ID}.desktop"
+        mkdir -p "${STAGE_DIR}/usr/lib/makidice"
+        mkdir -p "${STAGE_DIR}/usr/bin"
+        mkdir -p "${STAGE_DIR}/usr/share/applications"
+        mkdir -p "${STAGE_DIR}/usr/share/icons/hicolor/256x256/apps"
+
+        cp -r ${FLUTTER_BUNDLE}/* "${STAGE_DIR}/usr/lib/makidice/"
+
+        ln -s /usr/lib/makidice/makidice "${STAGE_DIR}/usr/bin/makidice"
+
+        cp assets/icon.png "${STAGE_DIR}/usr/share/icons/hicolor/256x256/apps/makidice.png"
+
+        cat <<EOF > "${STAGE_DIR}/usr/share/applications/${APP_ID}.desktop"
         [Desktop Entry]
         Version=1.9.3
         Type=Application
         Name=Maki Dice
         Comment=Dice for role-playing games
-        Exec=sh -c 'cd "\$(dirname "\$0")" && ./makidice'
-        Icon=assets/icon.png
+        Exec=/usr/bin/makidice
+        Icon=makidice
         Terminal=false
-        Categories=Utility;
+        Categories=Utility;Game;
         StartupWMClass=xyz.andrewmichaelpowell.makidice
         EOF
 
-        mkdir -p "${BUNDLE_DIR}/assets"
-        cp assets/icon.png "${BUNDLE_DIR}/assets/icon.png"
+        fpm -s dir -t deb \
+          -n makidice \
+          -v 1.9.3 \
+          -a "${{ matrix.fpm_arch }}" \
+          --description "Dice for role-playing games" \
+          -C "${STAGE_DIR}" .
 
-        cat <<EOF > "${BUNDLE_DIR}/install.sh"
-        #!/usr/bin/env bash
-        SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE}")" && pwd)"
-        DESKTOP_FILE="\${SCRIPT_DIR}/${APP_ID}.desktop"
-        
-        if [ ! -f "\$DESKTOP_FILE" ]; then
-            exit 1
-        fi
-        
-        sed -i "s|^Exec=.*|Exec=sh -c 'cd \"\${SCRIPT_DIR}\" \&\& ./makidice'|g" "\$DESKTOP_FILE"
-        sed -i "s|^Icon=.*|Icon=\${SCRIPT_DIR}/assets/icon.png|g" "\$DESKTOP_FILE"
-        
-        chmod +x "\$DESKTOP_FILE"
-        chmod +x "\${SCRIPT_DIR}/makidice"
-        
-        mkdir -p "\$HOME/.local/share/applications"
-        cp "\$DESKTOP_FILE" "\$HOME/.local/share/applications/"
-        
-        update-desktop-database "\$HOME/.local/share/applications" 2>/dev/null
-        
-        EOF
+        fpm -s dir -t rpm \
+          -n makidice \
+          -v 1.9.3 \
+          -a "${{ matrix.fpm_arch }}" \
+          --description "Dice for role-playing games" \
+          -C "${STAGE_DIR}" .
 
-        chmod +x "${BUNDLE_DIR}/${APP_ID}.desktop"
-        chmod +x "${BUNDLE_DIR}/install.sh"
-        chmod +x "${BUNDLE_DIR}/makidice"
-        tar -czf "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
+        cp "${STAGE_DIR}/usr/share/applications/${APP_ID}.desktop" "${FLUTTER_BUNDLE}/"
+        mkdir -p "${FLUTTER_BUNDLE}/assets"
+        cp assets/icon.png "${FLUTTER_BUNDLE}/assets/icon.png"
+        sed -i 's|Exec=/usr/bin/makidice|Exec=sh -c '\''cd "$(dirname "$0")" \&\& ./makidice'\''|g' "${FLUTTER_BUNDLE}/${APP_ID}.desktop"
+        sed -i 's|Icon=makidice|Icon=assets/icon.png|g' "${FLUTTER_BUNDLE}/${APP_ID}.desktop"
+
+        tar -czf "$GITHUB_WORKSPACE/flutter-linux-app-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
+
+        mv *.deb *.rpm "$GITHUB_WORKSPACE/"
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
@@ -123,3 +129,5 @@ jobs:
         name: makidice-linux-${{ matrix.architecture }}
         path: |
           makidice-linux-${{ matrix.architecture }}.tar.gz
+          *.deb
+          *.rpm

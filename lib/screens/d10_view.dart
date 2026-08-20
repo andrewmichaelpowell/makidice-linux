@@ -92,31 +92,39 @@ class _D10ViewState extends State<D10View> {
     );
   }
 
-  Widget _labelRow(String name, String value, {Color? nameColor}) {
-    final labelColor = labelColorOf(context);
-    return Row(
-      children: [
-        Expanded(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(name, style: TextStyle(fontSize: 34, color: nameColor ?? labelColor)),
-          ),
-        ),
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              value,
-              style: TextStyle(fontSize: 34, color: labelColor),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+Widget _labelRow(String name, String value, {Color? nameColor}) {
+  final labelColor = labelColorOf(context);
+  const lineHeight = 1.0;
+  return Row(
+    children: [
+      Expanded(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            name,
+            style: TextStyle(
+              fontSize: 34,
+              height: lineHeight,
+              color: nameColor ?? labelColor,
             ),
           ),
         ),
-      ],
-    );
-  }
+      ),
+      Expanded(
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: Text(
+            value,
+            style: TextStyle(fontSize: 34, height: lineHeight, color: labelColor),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+    ],
+  );
+}
 
   @override
   Widget build(BuildContext context) {
