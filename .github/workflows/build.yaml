@@ -128,8 +128,7 @@ jobs:
           --vendor "Andrew Powell" \
           --license "GPL-3.0" \
           --category "games" \
-          --deb-summary "Maki Dice" \
-          --description "Dice for role-playing games" \
+          --description "Dice for role-playing games. Maki Dice is a fast and easy dice roller for tabletop role-playing games. Roll any of the standard polyhedral dice with a single tap, enter custom rolls using the number pad, or calculate successes for games that use a dice and difficulty system." \
           -C "${STAGE_DIR}" .
 
         fpm -s dir -t rpm \
@@ -140,8 +139,7 @@ jobs:
           --vendor "Andrew Powell" \
           --license "GPL-3.0" \
           --category "Games" \
-          --summary "Maki Dice" \
-          --description "Dice for role-playing games" \
+          --description "Dice for role-playing games. Maki Dice is a fast and easy dice roller for tabletop role-playing games. Roll any of the standard polyhedral dice with a single tap, enter custom rolls using the number pad, or calculate successes for games that use a dice and difficulty system." \
           -C "${STAGE_DIR}" .
 
         cp "${STAGE_DIR}/usr/share/applications/${APP_ID}.desktop" "${FLUTTER_BUNDLE}/"
