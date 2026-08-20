@@ -25,6 +25,9 @@ void main() async {
 
     windowManager.waitUntilReadyToShow(windowOptions, () async {
       await windowManager.setTitle("Maki Dice"); 
+      if (Platform.isLinux) {
+        await windowManager.setAppId("xyz.andrewmichaelpowell.makidice");
+      }
       await windowManager.show();
       await windowManager.focus();
     });
