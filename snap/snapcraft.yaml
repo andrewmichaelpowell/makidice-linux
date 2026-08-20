@@ -1,0 +1,34 @@
+name: maki-dice
+title: Maki Dice
+base: core22
+version: '1.9.3'
+summary: Dice for role-playing games.
+description: |
+  Maki Dice is a fast and easy dice roller for tabletop role-playing games. Roll any of the standard polyhedral dice with a single tap, enter custom rolls using the number pad, or calculate successes for games that use a dice and difficulty system.
+
+license: GPL-3.0
+icon: assets/icon.png
+passthrough:
+  metadata:
+    url: https://github.com/andrewmichaelpowell
+
+confinement: strict
+grade: stable
+
+apps:
+  makidice:
+    command: bundle/makidice
+    extensions: [gnome]
+    desktop: xyz.andrewmichaelpowell.makidice.desktop
+
+parts:
+  flutter-app:
+    plugin: dump
+    source: .
+    override-build: |
+      if [ "$CRAFT_TARGET_ARCH" = "arm64" ]; then
+        ARCH_DIR="arm64"
+      else
+        ARCH_DIR="x64"
+      fi
+      cp -r build/linux/$ARCH_DIR/release/bundle/* $CRAFT_PART_INSTALL/
