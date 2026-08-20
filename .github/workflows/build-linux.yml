@@ -62,7 +62,11 @@ jobs:
         if [ ! -d "linux" ]; then
           flutter create --platforms=linux .
         fi
+
+        sed -i 's|set(APPLICATION_ID "com.example.makidice")|set(APPLICATION_ID "xyz.andrewmichaelpowell.makidice")|g' linux/CMakeLists.txt
         
+        sed -i 's|g_autofree gchar *application_id = g_strconcat("com.example.", binary_name, NULL);|g_autofree gchar *application_id = g_strdup("xyz.andrewmichaelpowell.makidice");|g' linux/runner/my_application.cc
+
         flutter build linux --release
 
     - name: Package App
@@ -70,21 +74,17 @@ jobs:
         BUNDLE_DIR="build/linux/${{ matrix.architecture }}/release/bundle"
         APP_ID="xyz.andrewmichaelpowell.makidice"
         
-        if [ -f "linux/CMakeLists.txt" ]; then
-          sed -i "s|set(BINARY_NAME \"makidice\")|set(BINARY_NAME \"makidice\")\nset(APPLICATION_ID \"${APP_ID}\")|g" linux/CMakeLists.txt
-        fi
-
         cat <<EOF > "${BUNDLE_DIR}/${APP_ID}.desktop"
         [Desktop Entry]
         Version=1.9.3
         Type=Application
         Name=Maki Dice
-        Comment=Dice for role-playing games
+        Comment=Maki Dice Roller Application
         Exec=sh -c 'cd "\$(dirname "\$0")" && ./makidice'
         Icon=assets/icon.png
         Terminal=false
         Categories=Utility;
-        StartupWMClass=makidice
+        StartupWMClass=xyz.andrewmichaelpowell.makidice
         EOF
 
         mkdir -p "${BUNDLE_DIR}/assets"
@@ -96,7 +96,6 @@ jobs:
         DESKTOP_FILE="\${SCRIPT_DIR}/${APP_ID}.desktop"
         
         if [ ! -f "\$DESKTOP_FILE" ]; then
-            echo "Error: ${APP_ID}.desktop not found!"
             exit 1
         fi
         
