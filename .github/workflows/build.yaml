@@ -95,8 +95,6 @@ jobs:
 
     - name: Build Package
       uses: canonical/craft-actions/snapcraft/pack@main
-      with:
-        snapcraft-args: "pack --destructive-mode"
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
