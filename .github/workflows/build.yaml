@@ -128,7 +128,7 @@ jobs:
           --vendor "Andrew Powell" \
           --license "GPL-3.0" \
           --category "games" \
-          --summary "Maki Dice" \
+          --deb-summary "Maki Dice" \
           --description "Dice for role-playing games" \
           -C "${STAGE_DIR}" .
 
@@ -150,7 +150,7 @@ jobs:
         sed -i 's|Exec=/usr/bin/makidice|Exec=sh -c '\''cd "$(dirname "$0")" \&\& ./makidice'\''|g' "${FLUTTER_BUNDLE}/${APP_ID}.desktop"
         sed -i 's|Icon=makidice|Icon=assets/icon.png|g' "${FLUTTER_BUNDLE}/${APP_ID}.desktop"
 
-        tar -czf "$GITHUB_WORKSPACE/flutter-linux-app-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
+        tar -czf "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
 
         for file in *.deb *.rpm; do
           if [ -f "$file" ] && [ ! -f "$GITHUB_WORKSPACE/$file" ]; then
