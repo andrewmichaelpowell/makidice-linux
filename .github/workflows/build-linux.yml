@@ -79,7 +79,7 @@ jobs:
         Version=1.9.3
         Type=Application
         Name=Maki Dice
-        Comment=Maki Dice Roller Application
+        Comment=Dice for role-playing games
         Exec=sh -c 'cd "\$(dirname "\$0")" && ./makidice'
         Icon=assets/icon.png
         Terminal=false
