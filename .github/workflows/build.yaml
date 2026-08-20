@@ -69,7 +69,7 @@ jobs:
 
         flutter build linux --release
 
-    - name: Generate Package
+    - name: Generate packages
       run: |
         APP_ID="xyz.andrewmichaelpowell.makidice"
         FLUTTER_BUNDLE="build/linux/${{ matrix.architecture }}/release/bundle"
@@ -91,7 +91,7 @@ jobs:
         Version=1.9.3
         Type=Application
         Name=Maki Dice
-        Comment=Dice for role-playing games.
+        Comment=Dice for role-playing games
         Exec=/usr/bin/makidice
         Icon=makidice
         Terminal=false
@@ -99,18 +99,40 @@ jobs:
         StartupWMClass=xyz.andrewmichaelpowell.makidice
         EOF
 
+        cat <<EOF > /tmp/deb-control-template
+        Package: maki-dice
+        Version: 1.9.3
+        Architecture: ${{ matrix.fpm_arch }}
+        Maintainer: Andrew Powell
+        Vendor: Andrew Powell
+        License: GPL-3.0
+        Homepage: https://github.com/andrewmichaelpowell
+        Icon: /usr/share/icons/hicolor/256x256/apps/makidice.png
+        X-AppCenter-Title: Maki Dice
+        Description: Maki Dice
+         Maki dice is a fast and easy dice roller for tabletop role-playing games. Roll any of the standard polyhedral dice with a single tap, enter custom rolls using the number pad, or calculate successes for games that use a dice and difficulty system.
+        EOF
+
         fpm -s dir -t deb \
+          -n maki-dice \
+          -v 1.9.3 \
+          -a "${{ matrix.fpm_arch }}" \
+          --license "GPL-3.0" \
+          --vendor "Andrew Powell" \
+          --maintainer "Andrew Powell" \
+          --deb-custom-control /tmp/deb-control-template \
+          -C "${STAGE_DIR}" .
+
+        fpm -s dir -t rpm \
           -n maki-dice \
           -v 1.9.3 \
           -a "${{ matrix.fpm_arch }}" \
           --maintainer "Andrew Powell" \
           --vendor "Andrew Powell" \
           --license "GPL-3.0" \
-          --category "games" \
-          --url "https://github.com/andrewmichaelpowell/" \
-          --description "Maki Dice is a fast and easy dice roller for tabletop role-playing games. Roll any of the standard polyhedral dice with a single tap, enter custom rolls using the number pad, or calculate successes for games that use a dice and difficulty system." \
-          --deb-field "X-AppCenter-Title: Maki Dice" \
-          --deb-field "Icon: /usr/share/icons/hicolor/256x256/apps/makidice.png" \
+          --category "Games" \
+          --url "https://github.com/andrewmichaelpowell" \
+          --description "Maki Dice. Maki Dice is a fast and easy dice roller for tabletop role-playing games. Roll any of the standard polyhedral dice with a single tap, enter custom rolls using the number pad, or calculate successes for games that use a dice and difficulty system." \
           -C "${STAGE_DIR}" .
 
         cp "${STAGE_DIR}/usr/share/applications/${APP_ID}.desktop" "${FLUTTER_BUNDLE}/"
@@ -121,12 +143,11 @@ jobs:
 
         tar -czf "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
 
-        for file in *.deb; do
+        for file in *.deb *.rpm; do
           if [ -f "$file" ] && [ ! -f "$GITHUB_WORKSPACE/$file" ]; then
             mv "$file" "$GITHUB_WORKSPACE/"
           fi
         done
-
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
@@ -134,5 +155,5 @@ jobs:
         name: makidice-linux-${{ matrix.architecture }}
         path: |
           makidice-linux-${{ matrix.architecture }}.tar.gz
-          ./*.snap
           *.deb
+          *.rpm
