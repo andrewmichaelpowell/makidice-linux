@@ -19,7 +19,7 @@ jobs:
             fpm_arch: amd64
           - architecture: arm64
             runner: ubuntu-24.04-arm
-            fpm_arch: aarch64
+            fpm_arch: arm64
 
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
