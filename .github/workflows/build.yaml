@@ -94,7 +94,9 @@ jobs:
         tar -czf "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
 
     - name: Build Package
-      uses: canonical/craft-actions/snapcraft/pack@main
+      run: |
+        sudo snap install snapcraft --classic        
+        snapcraft pack --destructive-mode
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
