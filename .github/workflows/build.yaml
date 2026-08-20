@@ -16,10 +16,10 @@ jobs:
         include:
           - architecture: x64
             runner: ubuntu-latest
-            fpm_arch: amd64
+            snap_arch: amd64
           - architecture: arm64
             runner: ubuntu-24.04-arm
-            fpm_arch: arm64
+            snap_arch: arm64
 
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
@@ -32,7 +32,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
-        sudo gem install --no-document fpm
 
     - name: Configure Java
       uses: actions/setup-java@v5
@@ -69,86 +68,35 @@ jobs:
 
         flutter build linux --release
 
-    - name: Generate Packages
+    - name: Generate Artifacts
       run: |
         APP_ID="xyz.andrewmichaelpowell.makidice"
         FLUTTER_BUNDLE="build/linux/${{ matrix.architecture }}/release/bundle"
-        STAGE_DIR="/tmp/package-staging"
-        
-        mkdir -p "${STAGE_DIR}/usr/lib/makidice"
-        mkdir -p "${STAGE_DIR}/usr/bin"
-        mkdir -p "${STAGE_DIR}/usr/share/applications"
-        mkdir -p "${STAGE_DIR}/usr/share/icons/hicolor/256x256/apps"
 
-        cp -r ${FLUTTER_BUNDLE}/* "${STAGE_DIR}/usr/lib/makidice/"
-
-        ln -s /usr/lib/makidice/makidice "${STAGE_DIR}/usr/bin/makidice"
-
-        cp assets/icon.png "${STAGE_DIR}/usr/share/icons/hicolor/256x256/apps/makidice.png"
-
-        cat <<EOF > "${STAGE_DIR}/usr/share/applications/${APP_ID}.desktop"
+        cat <<EOF > "${FLUTTER_BUNDLE}/${APP_ID}.desktop"
         [Desktop Entry]
         Version=1.9.3
         Type=Application
         Name=Maki Dice
         Comment=Dice for role-playing games
-        Exec=/usr/bin/makidice
-        Icon=makidice
+        Exec=sh -c 'cd "\$(dirname "\$0")" && ./makidice'
+        Icon=assets/icon.png
         Terminal=false
         Categories=Utility;Game;
         StartupWMClass=xyz.andrewmichaelpowell.makidice
         EOF
 
-        cat <<EOF > /tmp/deb-control-template
-        Package: maki-dice
-        Version: 1.9.3
-        Architecture: ${{ matrix.fpm_arch }}
-        Maintainer: Andrew Powell
-        Vendor: Andrew Powell
-        License: GPL-3.0
-        Homepage: https://github.com/andrewmichaelpowell
-        Icon: /usr/share/icons/hicolor/256x256/apps/makidice.png
-        X-AppCenter-Title: Maki Dice
-        Description: Maki Dice
-         Maki Dice is a fast and easy dice roller for tabletop role-playing games. Roll any of the standard polyhedral dice with a single tap, enter custom rolls using the number pad, or calculate successes for games that use a dice and difficulty system.
-        EOF
-
-        fpm -s dir -t deb \
-          -n maki-dice \
-          -v 1.9.3 \
-          -a "${{ matrix.fpm_arch }}" \
-          --license "GPL-3.0" \
-          --vendor "Andrew Powell" \
-          --maintainer "Andrew Powell" \
-          --deb-custom-control /tmp/deb-control-template \
-          -C "${STAGE_DIR}" .
-
-        # 8. Generate the Red Hat (.rpm) package using standard parameter structures
-        fpm -s dir -t rpm \
-          -n maki-dice \
-          -v 1.9.3 \
-          -a "${{ matrix.fpm_arch }}" \
-          --maintainer "Andrew Powell" \
-          --vendor "Andrew Powell" \
-          --license "GPL-3.0" \
-          --category "Games" \
-          --url "https://github.com/andrewmichaelpowell/" \
-          --description "Maki Dice. Maki Dice is a fast and easy dice roller for tabletop role-playing games. Roll any of the standard polyhedral dice with a single tap, enter custom rolls using the number pad, or calculate successes for games that use a dice and difficulty system." \
-          -C "${STAGE_DIR}" .
-
-        cp "${STAGE_DIR}/usr/share/applications/${APP_ID}.desktop" "${FLUTTER_BUNDLE}/"
         mkdir -p "${FLUTTER_BUNDLE}/assets"
         cp assets/icon.png "${FLUTTER_BUNDLE}/assets/icon.png"
-        sed -i 's|Exec=/usr/bin/makidice|Exec=sh -c '\''cd "$(dirname "$0")" \&\& ./makidice'\''|g' "${FLUTTER_BUNDLE}/${APP_ID}.desktop"
-        sed -i 's|Icon=makidice|Icon=assets/icon.png|g' "${FLUTTER_BUNDLE}/${APP_ID}.desktop"
+        chmod +x "${FLUTTER_BUNDLE}/${APP_ID}.desktop"
+        chmod +x "${FLUTTER_BUNDLE}/makidice"
 
         tar -czf "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
 
-        for file in *.deb *.rpm; do
-          if [ -f "$file" ] && [ ! -f "$GITHUB_WORKSPACE/$file" ]; then
-            mv "$file" "$GITHUB_WORKSPACE/"
-          fi
-        done
+    - name: Build Package
+      uses: canonical/action-snapcraft@v3
+      with:
+        architecture: ${{ matrix.snap_arch }}
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
@@ -156,5 +104,4 @@ jobs:
         name: makidice-linux-${{ matrix.architecture }}
         path: |
           makidice-linux-${{ matrix.architecture }}.tar.gz
-          *.deb
-          *.rpm
+          ./*.snap
