@@ -70,17 +70,21 @@ jobs:
         BUNDLE_DIR="build/linux/${{ matrix.architecture }}/release/bundle"
         APP_ID="xyz.andrewmichaelpowell.makidice"
         
+        if [ -f "linux/CMakeLists.txt" ]; then
+          sed -i "s|set(BINARY_NAME \"makidice\")|set(BINARY_NAME \"makidice\")\nset(APPLICATION_ID \"${APP_ID}\")|g" linux/CMakeLists.txt
+        fi
+
         cat <<EOF > "${BUNDLE_DIR}/${APP_ID}.desktop"
         [Desktop Entry]
-        Version=1.0
+        Version=1.9.3
         Type=Application
         Name=Maki Dice
-        Comment=Maki Dice Roller Application
+        Comment=Dice for role-playing games
         Exec=sh -c 'cd "\$(dirname "\$0")" && ./makidice'
         Icon=assets/icon.png
         Terminal=false
-        Categories=Utility;Game;
-        StartupWMClass=${APP_ID}
+        Categories=Utility;
+        StartupWMClass=makidice
         EOF
 
         mkdir -p "${BUNDLE_DIR}/assets"
@@ -104,12 +108,13 @@ jobs:
         
         mkdir -p "\$HOME/.local/share/applications"
         cp "\$DESKTOP_FILE" "\$HOME/.local/share/applications/"
+        
         update-desktop-database "\$HOME/.local/share/applications" 2>/dev/null
         
         EOF
 
         chmod +x "${BUNDLE_DIR}/${APP_ID}.desktop"
-        chmod +x "${BUNDLE_DIR}/install.sh"
+        chmod +x "${BUNDLE_DIR}/install-launcher.sh"
         chmod +x "${BUNDLE_DIR}/makidice"
         tar -czf "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.tar.gz" -C build/linux/${{ matrix.architecture }}/release bundle
 
