@@ -144,7 +144,7 @@ Widget _labelRow(String name, String value, {Color? nameColor}) {
               _labelRow('Difficulty', _difficultyString, nameColor: _selected == 2 ? AppColors.teal : null),
               const SizedBox(height: 4),
               _labelRow('Successes', _successesString),
-              const SizedBox(height: 16),
+              const SizedBox(height: 32),
               Row(children: [
                 Expanded(
                   child: Padding(

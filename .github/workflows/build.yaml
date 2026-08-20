@@ -78,6 +78,7 @@ jobs:
         mkdir -p "${STAGE_DIR}/usr/lib/makidice"
         mkdir -p "${STAGE_DIR}/usr/bin"
         mkdir -p "${STAGE_DIR}/usr/share/applications"
+        mkdir -p "${STAGE_DIR}/usr/share/metainfo"
         mkdir -p "${STAGE_DIR}/usr/share/icons/hicolor/256x256/apps"
 
         cp -r ${FLUTTER_BUNDLE}/* "${STAGE_DIR}/usr/lib/makidice/"
@@ -99,10 +100,35 @@ jobs:
         StartupWMClass=xyz.andrewmichaelpowell.makidice
         EOF
 
+        cat <<EOF > "${STAGE_DIR}/usr/share/metainfo/${APP_ID}.metainfo.xml"
+        <?xml version="1.0" encoding="UTF-8"?>
+        <component type="desktop-id">
+          <id>${APP_ID}</id>
+          <metadata_license>CC0-1.0</metadata_license>
+          <project_license>GPL-3.0</project_license>
+          <name>Maki Dice</name>
+          <summary>Dice for role-playing games</summary>
+          <developer_name>Andrew Powell</developer_name>
+          <description>
+            <p>Maki Dice is a fast and easy dice roller for tabletop role-playing games. Roll any of the standard polyhedral dice with a single tap, enter custom rolls using the number pad, or calculate successes for games that use a dice and difficulty system.</p>
+          </description>
+          <launchable type="desktop-id">${APP_ID}.desktop</launchable>
+          <url type="homepage">https://github.com/andrewmichaelpowell</url>
+          <provides>
+            <binary>makidice</binary>
+          </provides>
+        </component>
+        EOF
+
         fpm -s dir -t deb \
           -n makidice \
           -v 1.9.3 \
           -a "${{ matrix.fpm_arch }}" \
+          --maintainer "Andrew Powell <https://github.com/andrewmichaelpowell>" \
+          --vendor "Andrew Powell" \
+          --license "GPL-3.0" \
+          --category "games" \
+          --summary "Maki Dice" \
           --description "Dice for role-playing games" \
           -C "${STAGE_DIR}" .
 
@@ -110,6 +136,11 @@ jobs:
           -n makidice \
           -v 1.9.3 \
           -a "${{ matrix.fpm_arch }}" \
+          --maintainer "Andrew Powell <https://github.com/andrewmichaelpowell>" \
+          --vendor "Andrew Powell" \
+          --license "GPL-3.0" \
+          --category "Games" \
+          --summary "Maki Dice" \
           --description "Dice for role-playing games" \
           -C "${STAGE_DIR}" .
 
