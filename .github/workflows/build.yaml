@@ -139,9 +139,6 @@ jobs:
           -n makidice \
           -v 1.9.3 \
           -a "${{ matrix.fpm_arch }}" \
-          # --license "GPL-3.0" \
-          # --vendor "Andrew Powell" \
-          # --maintainer "Andrew Powell" \
           --deb-custom-control /tmp/deb-control-template \
           -C "${STAGE_DIR}" .
 
