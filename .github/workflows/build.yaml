@@ -69,7 +69,7 @@ jobs:
 
         flutter build linux --release
 
-    - name: Build FPM Packages
+    - name: Build Packages
       run: |
         APP_ID="xyz.andrewmichaelpowell.makidice"
         FLUTTER_BUNDLE="build/linux/${{ matrix.architecture }}/release/bundle"
@@ -168,11 +168,14 @@ jobs:
           fi
         done
 
-    - name: Build Snap Package
+    - name: Clean Build
+      run: flutter clean
+
+    - name: Build Snap
       uses: snapcore/action-build@v1
       id: snapcraft
 
-    - name: Move Snap Package
+    - name: Move Snap
       run: mv "${{ steps.snapcraft.outputs.snap }}" "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.snap"
 
     - name: Upload Artifacts
