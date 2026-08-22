@@ -18,7 +18,6 @@ apps:
   makidice:
     command: makidice
     extensions: [gnome]
-    # desktop: snap/gui/makidice.desktop
 
 parts:
   makidice:
