@@ -26,7 +26,7 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Install Linux Dependencies
       run: |
@@ -170,7 +170,7 @@ jobs:
       run: mv "${{ steps.snapcraft.outputs.snap }}" "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.snap"
 
     - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: makidice-linux-${{ matrix.architecture }}
         path: |
