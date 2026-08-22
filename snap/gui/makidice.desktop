@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Maki Dice
+Comment=Dice for role-playing games
+Exec=makidice
+Icon=${SNAP}/meta/gui/makidice.png
+Terminal=false
+Type=Application
+Categories=Game;

@@ -1,0 +1,24 @@
+name: makidice
+version: '1.9.3'
+summary: Dice for role-playing games
+description: |
+  Maki Dice is a fast and easy dice roller for tabletop role-playing games.
+  Roll any of the standard polyhedral dice with a single tap, enter custom
+  rolls using the number pad, or calculate successes for games that use a
+  dice and difficulty system.
+
+base: core22
+confinement: strict
+grade: stable
+
+apps:
+  makidice:
+    command: makidice
+    extensions: [gnome]
+    # desktop: snap/gui/makidice.desktop
+
+parts:
+  makidice:
+    source: .
+    plugin: flutter
+    flutter-target: lib/main.dart
