@@ -170,12 +170,30 @@ jobs:
     - name: Move Snap
       run: mv "${{ steps.snapcraft.outputs.snap }}" "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.snap"
 
-    - name: Upload Artifacts
+    - name: Upload Deb Artifacts
       uses: actions/upload-artifact@v6
       with:
-        name: makidice-linux-${{ matrix.architecture }}
+        name: makidice-linux-${{ matrix.architecture }}-deb
         path: |
           makidice-linux-${{ matrix.architecture }}.deb
+
+    - name: Upload RPM Artifacts
+      uses: actions/upload-artifact@v6
+      with:
+        name: makidice-linux-${{ matrix.architecture }}-rpm
+        path: |
           makidice-linux-${{ matrix.architecture }}.rpm
+
+    - name: Upload Snap Artifacts
+      uses: actions/upload-artifact@v6
+      with:
+        name: makidice-linux-${{ matrix.architecture }}-snap
+        path: |
           makidice-linux-${{ matrix.architecture }}.snap
+
+    - name: Upload Tarball Artifacts
+      uses: actions/upload-artifact@v6
+      with:
+        name: makidice-linux-${{ matrix.architecture }}-tar.gz
+        path: |
           makidice-linux-${{ matrix.architecture }}.tar.gz
