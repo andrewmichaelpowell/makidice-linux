@@ -80,7 +80,7 @@ jobs:
 
         cat <<EOF > "${STAGE_DIR}/usr/share/applications/${APP_ID}.desktop"
         [Desktop Entry]
-        Version=1.9.3
+        Version=1.5
         Type=Application
         Name=Maki Dice
         Comment=Dice for role-playing games
@@ -116,7 +116,7 @@ jobs:
 
         cat <<EOF > /tmp/deb-control-template
         Package: makidice
-        Version: 1.9.3
+        Version: 2026.10.22
         Architecture: ${{ matrix.fpm_arch }}
         Maintainer: Andrew Powell
         Vendor: Andrew Powell
@@ -128,14 +128,14 @@ jobs:
 
         fpm -s dir -t deb \
           -n makidice \
-          -v 1.9.3 \
+          -v 2026.10.22 \
           -a "${{ matrix.fpm_arch }}" \
           --deb-custom-control /tmp/deb-control-template \
           -C "${STAGE_DIR}" .
 
         fpm -s dir -t rpm \
           -n makidice \
-          -v 1.9.3 \
+          -v 2026.10.22 \
           -a "${{ matrix.fpm_arch }}" \
           --maintainer "Andrew Powell" \
           --vendor "Andrew Powell" \
