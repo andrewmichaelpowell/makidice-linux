@@ -2,7 +2,7 @@
 # github.com/andrewmichaelpowell
 
 name: makidice
-version: '2026.10.24'
+version: '2026.10.22'
 summary: Dice for role-playing games
 description: |
   Maki Dice is a fast and easy dice roller for tabletop role-playing games.
