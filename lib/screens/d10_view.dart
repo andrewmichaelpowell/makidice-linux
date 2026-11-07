@@ -139,9 +139,9 @@ Widget _labelRow(String name, String value, {Color? nameColor}) {
             children: [
               _backButton(context),
               const Spacer(),
-              _labelRow('Dice', _diceString, nameColor: _selected == 1 ? AppColors.teal : null),
+              _labelRow('Dice', _diceString, nameColor: _selected == 1 ? AppColors.green : null),
               const SizedBox(height: 4),
-              _labelRow('Difficulty', _difficultyString, nameColor: _selected == 2 ? AppColors.teal : null),
+              _labelRow('Difficulty', _difficultyString, nameColor: _selected == 2 ? AppColors.green : null),
               const SizedBox(height: 4),
               _labelRow('Successes', _successesString),
               const SizedBox(height: 32),
@@ -151,7 +151,7 @@ Widget _labelRow(String name, String value, {Color? nameColor}) {
                     padding: const EdgeInsets.all(4),
                     child: DiceButton(
                       label: 'Dice',
-                      tint: _selected == 1 ? AppColors.teal : secondaryBg,
+                      tint: _selected == 1 ? AppColors.green : secondaryBg,
                       contentColor: _selected == 1 ? Colors.white : labelColor,
                       onPressed: () => setState(() => _selected = 1),
                     ),
@@ -162,7 +162,7 @@ Widget _labelRow(String name, String value, {Color? nameColor}) {
                     padding: const EdgeInsets.all(4),
                     child: DiceButton(
                       label: 'Difficulty',
-                      tint: _selected == 2 ? AppColors.teal : secondaryBg,
+                      tint: _selected == 2 ? AppColors.green : secondaryBg,
                       contentColor: _selected == 2 ? Colors.white : labelColor,
                       onPressed: () => setState(() => _selected = 2),
                     ),

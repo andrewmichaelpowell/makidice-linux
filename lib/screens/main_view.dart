@@ -142,7 +142,7 @@ class _MainViewState extends State<MainView> {
                     Row(children: [
                       Expanded(child: Padding(padding: const EdgeInsets.all(4), child: DiceButton(label: 'Clear', tint: AppColors.orange, onPressed: _clear))),
                       Expanded(child: Padding(padding: const EdgeInsets.all(4), child: DiceButton(label: '1d100', tint: secondaryBg, contentColor: labelColor, onPressed: () => _quickRoll(100)))),
-                      Expanded(child: Padding(padding: const EdgeInsets.all(4), child: DiceButton(label: 'D10', tint: AppColors.teal, onPressed: () => Navigator.of(context).pushNamed('/d10')))),
+                      Expanded(child: Padding(padding: const EdgeInsets.all(4), child: DiceButton(label: 'D10', tint: AppColors.green, onPressed: () => Navigator.of(context).pushNamed('/d10')))),
                     ]),
                   ],
                 ),
