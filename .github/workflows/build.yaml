@@ -23,7 +23,7 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
 
     - name: Install Linux Dependencies
       run: |
@@ -167,28 +167,28 @@ jobs:
       run: mv "${{ steps.snapcraft.outputs.snap }}" "$GITHUB_WORKSPACE/makidice-linux-${{ matrix.architecture }}.snap"
 
     - name: Upload Deb Artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: makidice-linux-${{ matrix.architecture }}-deb
         path: |
           makidice-linux-${{ matrix.architecture }}.deb
 
     - name: Upload RPM Artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: makidice-linux-${{ matrix.architecture }}-rpm
         path: |
           makidice-linux-${{ matrix.architecture }}.rpm
 
     - name: Upload Snap Artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: makidice-linux-${{ matrix.architecture }}-snap
         path: |
           makidice-linux-${{ matrix.architecture }}.snap
 
     - name: Upload Tarball Artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: makidice-linux-${{ matrix.architecture }}-tar.gz
         path: |
