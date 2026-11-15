@@ -4,7 +4,6 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const green = Color(0xFF045030);
   static const orange = Color(0xFFF05C22);
 
   static const secondaryBackgroundLight = Color(0xFFEFEFF4);
@@ -26,7 +25,7 @@ ThemeData buildTheme(Brightness brightness) {
         isLight ? AppColors.windowBackgroundLight : AppColors.windowBackgroundDark,
     colorScheme: ColorScheme(
       brightness: brightness,
-      primary: AppColors.green,
+      primary: AppColors.orange,
       onPrimary: Colors.white,
       secondary: AppColors.orange,
       onSecondary: Colors.white,

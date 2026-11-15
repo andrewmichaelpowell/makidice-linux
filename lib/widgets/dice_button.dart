@@ -29,9 +29,7 @@ class DiceButton extends StatelessWidget {
           disabledBackgroundColor: tint.withOpacity(0.5),
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 6),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: const StadiumBorder(),
         ).copyWith(
           // Press-only feedback — no hover/focus highlight.
           overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {

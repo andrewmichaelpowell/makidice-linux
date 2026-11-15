@@ -4,6 +4,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../theme.dart';
+import '../widgets/choosers.dart';
 import '../widgets/dice_button.dart';
 
 class D10View extends StatefulWidget {
@@ -68,31 +69,7 @@ class _D10ViewState extends State<D10View> {
     setState(() => _successesString = _successesValue.toString());
   }
 
-  Widget _backButton(BuildContext context) {
-    final secondaryBg = secondaryBackgroundOf(context);
-    final labelColor = labelColorOf(context);
-    return Align(
-      alignment: Alignment.topLeft,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 16),
-        child: Material(
-          color: secondaryBg,
-          shape: const CircleBorder(),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: () => Navigator.of(context).pop(),
-            child: SizedBox(
-              width: 36,
-              height: 36,
-              child: Icon(Icons.chevron_left, color: labelColor, size: 22),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-Widget _labelRow(String name, String value, {Color? nameColor}) {
+Widget _labelRow(String name, String value) {
   final labelColor = labelColorOf(context);
   const lineHeight = 1.0;
   return Row(
@@ -106,7 +83,7 @@ Widget _labelRow(String name, String value, {Color? nameColor}) {
             style: TextStyle(
               fontSize: 34,
               height: lineHeight,
-              color: nameColor ?? labelColor,
+              color: labelColor,
             ),
           ),
         ),
@@ -137,38 +114,21 @@ Widget _labelRow(String name, String value, {Color? nameColor}) {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             children: [
-              _backButton(context),
               const Spacer(),
-              _labelRow('Dice', _diceString, nameColor: _selected == 1 ? AppColors.green : null),
+              _labelRow('Dice', _diceString),
               const SizedBox(height: 4),
-              _labelRow('Difficulty', _difficultyString, nameColor: _selected == 2 ? AppColors.green : null),
+              _labelRow('Difficulty', _difficultyString),
               const SizedBox(height: 4),
               _labelRow('Successes', _successesString),
               const SizedBox(height: 32),
-              Row(children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: DiceButton(
-                      label: 'Dice',
-                      tint: _selected == 1 ? AppColors.green : secondaryBg,
-                      contentColor: _selected == 1 ? Colors.white : labelColor,
-                      onPressed: () => setState(() => _selected = 1),
-                    ),
-                  ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: SegmentChooser(
+                  selectedIndex: _selected - 1,
+                  labels: const ['Dice', 'Difficulty'],
+                  onSelect: (index) => setState(() => _selected = index + 1),
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: DiceButton(
-                      label: 'Difficulty',
-                      tint: _selected == 2 ? AppColors.green : secondaryBg,
-                      contentColor: _selected == 2 ? Colors.white : labelColor,
-                      onPressed: () => setState(() => _selected = 2),
-                    ),
-                  ),
-                ),
-              ]),
+              ),
               Padding(
                 padding: const EdgeInsets.only(top: 32, bottom: 32),
                 child: Column(

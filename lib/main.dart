@@ -7,6 +7,7 @@ import 'package:window_manager/window_manager.dart';
 import 'theme.dart';
 import 'screens/main_view.dart';
 import 'screens/d10_view.dart';
+import 'widgets/choosers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,10 +45,58 @@ class MakiDiceApp extends StatelessWidget {
       theme: buildTheme(Brightness.light),
       darkTheme: buildTheme(Brightness.dark),
       themeMode: ThemeMode.system,
-      routes: {
-        '/': (context) => const MainView(),
-        '/d10': (context) => const D10View(),
-      },
+      home: const RootView(),
+    );
+  }
+}
+
+class RootView extends StatefulWidget {
+  const RootView({super.key});
+
+  @override
+  State<RootView> createState() => _RootViewState();
+}
+
+class _RootViewState extends State<RootView> {
+  int _selectedTab = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final labelColor = labelColorOf(context);
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: IndexedStack(
+                index: _selectedTab,
+                children: const [MainView(), D10View()],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: PageChooser(
+                selectedIndex: _selectedTab,
+                onSelect: (index) => setState(() => _selectedTab = index),
+                items: [
+                  ('Calculator', DiceIcon(color: labelColor)),
+                  (
+                    'D10',
+                    Text(
+                      'D10',
+                      style: TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w600,
+                        color: labelColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
