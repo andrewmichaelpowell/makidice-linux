@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 class DiceButton extends StatelessWidget {
   final String label;
+  final IconData? icon;
   final Color tint;
   final Color contentColor;
   final VoidCallback onPressed;
@@ -12,6 +13,7 @@ class DiceButton extends StatelessWidget {
   const DiceButton({
     super.key,
     required this.label,
+    this.icon,
     required this.tint,
     this.contentColor = Colors.white,
     required this.onPressed,
@@ -31,7 +33,6 @@ class DiceButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 6),
           shape: const StadiumBorder(),
         ).copyWith(
-          // Press-only feedback — no hover/focus highlight.
           overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
             if (states.contains(WidgetState.pressed)) {
               return Colors.black.withOpacity(0.18);
@@ -39,13 +40,15 @@ class DiceButton extends StatelessWidget {
             return Colors.transparent;
           }),
         ),
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-          ),
-        ),
+        child: icon != null
+            ? Icon(icon, size: 24, semanticLabel: label)
+            : FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                ),
+              ),
       ),
     );
   }

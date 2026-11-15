@@ -89,6 +89,25 @@ class _MainViewState extends State<MainView> {
     }
   }
 
+  void _backspace() {
+    if (_resetInput != 0) return;
+    setState(() {
+      if (_editSide == 2) {
+        if (_diceType.isEmpty) {
+          _editSide = 1;
+          _resultString = _diceNumber;
+        } else {
+          _diceType = _diceType.substring(0, _diceType.length - 1);
+          _resultString = '${_diceNumber}d$_diceType';
+        }
+      } else if (_diceNumber.isNotEmpty) {
+        _diceNumber = _diceNumber.substring(0, _diceNumber.length - 1);
+        _resultString = _diceNumber;
+        if (_diceNumber.isEmpty) _resetInput = 1;
+      }
+    });
+  }
+
   void _roll() {
     if (_diceNumber != '' && _diceType != '') {
       final n = int.parse(_diceNumber);
@@ -169,7 +188,7 @@ class _MainViewState extends State<MainView> {
                     Row(children: [
                       Expanded(child: Padding(padding: const EdgeInsets.all(4), child: DiceButton(label: 'd', tint: AppColors.orange, onPressed: _pressD))),
                       Expanded(child: Padding(padding: const EdgeInsets.all(4), child: DiceButton(label: '0', tint: secondaryBg, contentColor: labelColor, onPressed: _zero))),
-                      Expanded(child: Padding(padding: const EdgeInsets.all(4), child: DiceButton(label: 'Roll', tint: AppColors.orange, onPressed: _roll))),
+                      Expanded(child: Padding(padding: const EdgeInsets.all(4), child: DiceButton(label: 'Delete', icon: Icons.backspace_outlined, tint: AppColors.orange, onPressed: _backspace))),
                     ]),
                   ],
                 ),
