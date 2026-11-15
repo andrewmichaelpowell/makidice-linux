@@ -79,7 +79,7 @@ class _RootViewState extends State<RootView> {
                 selectedIndex: _selectedTab,
                 onSelect: (index) => setState(() => _selectedTab = index),
                 items: [
-                  ('Calculator', DiceIcon(color: labelColor)),
+                  ('Calculator', DiceIcon(color: _selectedTab == 0 ? Colors.white : labelColor)),
                   (
                     'D10',
                     Text(
@@ -87,7 +87,7 @@ class _RootViewState extends State<RootView> {
                       style: TextStyle(
                         fontSize: 19,
                         fontWeight: FontWeight.w600,
-                        color: labelColor,
+                        color: _selectedTab == 1 ? Colors.white : labelColor,
                       ),
                     ),
                   ),
